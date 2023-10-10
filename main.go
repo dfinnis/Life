@@ -34,59 +34,89 @@ func makeNewBoard(initialBoard [][]int) [][]position {
 	return newBoard
 }
 
-// func offBoard(board [][]int, m, n int) bool {
-// 	if m < 0 || n < 0 || m >= len(board) || n >= len(board[0]) {
-// 		return true
-// 	}
-// 	return false
-// }
+func offBoard(board [][]position, row, col int) bool {
+	if row < 0 || col < 0 || row >= len(board) || col >= len(board[0]) {
+		return true
+	}
+	return false
+}
 
-// func countNeighbours(board [][]int, m, n int) int {
-// 	neighbours := 0
-// 	for mNeighbour := m - 1; mNeighbour <= m+1; mNeighbour++ {
-// 		for nNeighbour := n - 1; nNeighbour <= n+1; nNeighbour++ {
-// 			if (mNeighbour == m && nNeighbour == n) || offBoard(board, mNeighbour, nNeighbour) {
-// 				continue
-// 			}
-// 			neighbours += board[mNeighbour][nNeighbour]
-// 		}
-// 	}
-// 	return neighbours
-// }
+func countNeighbours(board [][]position, row, col int, day bool) uint {
+	var neighbours uint
+	for rowNeighbour := row - 1; rowNeighbour <= row+1; rowNeighbour++ {
+		for colNeighbour := col - 1; colNeighbour <= col+1; colNeighbour++ {
+			if (rowNeighbour == row && colNeighbour == col) || offBoard(board, rowNeighbour, colNeighbour) {
+				continue
+			}
+			if day {
+				if board[rowNeighbour][colNeighbour].day {
+					neighbours++
+				}
+			} else {
+				if board[rowNeighbour][colNeighbour].night {
+					neighbours++
+				}
+			}
 
-// func isAlive(wasAlive, neighbours int) int {
-// 	if wasAlive == 1 {
-// 		if neighbours == 2 || neighbours == 3 {
-// 			return 1
-// 		}
-// 	} else {
-// 		if neighbours == 3 {
-// 			return 1
-// 		}
-// 	}
-// 	return 0
-// }
+		}
+	}
+	return neighbours
+}
 
-// func applyRules(board [][]int, m, n int) int {
-// 	neighbours := countNeighbours(board, m, n)
-// 	return isAlive(board[m][n], neighbours)
-// }
+func deadOrAlive(board [][]position, row, col int, day bool, neighbours uint) {
+	if day {
+		if board[row][col].day {
+			if neighbours == 2 || neighbours == 3 {
+				board[row][col].night = true
+			} else {
+				board[row][col].night = false
+			}
+		} else { // was dead
+			if neighbours == 3 {
+				board[row][col].night = true
+			} else {
+				board[row][col].night = false
+			}
+		}
+	} else {
+		if board[row][col].night {
+			if neighbours == 2 || neighbours == 3 {
+				board[row][col].day = true
+			} else {
+				board[row][col].day = false
+			}
+		} else { // was dead
+			if neighbours == 3 {
+				board[row][col].day = true
+			} else {
+				board[row][col].day = false
+			}
+		}
+	}
+}
+
+func applyRules(board [][]position, row, col int, day bool) {
+	neighbours := countNeighbours(board, row, col, day)
+	deadOrAlive(board, row, col, day, neighbours)
+}
 
 func gameOfLife(initialBoard [][]int) {
 	day := true
 	board := makeNewBoard(initialBoard)
 
-	// for m := 0; m < len(board); m++ {
-	// 	for n := 0; n < len(board[0]); n++ {
-	// 		newBoard[m][n] = applyRules(board, m, n)
-	// 	}
-	// }
+	printBoard(board, day) ////
 
-	// for m := 0; m < len(board); m++ {
-	// 	for n := 0; n < len(board[0]); n++ {
-	// 		board[m][n] = newBoard[m][n]
-	// 	}
-	// }
+	for row := 0; row < len(board); row++ {
+		for col := 0; col < len(board[0]); col++ {
+			applyRules(board, row, col, day)
+		}
+	}
+
+	if day {
+		day = false
+	} else {
+		day = true
+	}
 	printBoard(board, day) ////
 }
 
@@ -118,9 +148,9 @@ func main() {
 	fmt.Printf("%v%vGame of Life%v\n\n", BOLD, UNDERLINE, RESET)
 
 	initialBoard := [][]int{{0, 1, 0}, {0, 0, 1}, {1, 1, 1}, {0, 0, 0}}
+	// initialBoard := [][]int{{1, 1}, {1, 0}}
 	gameOfLife(initialBoard)
 
-	// board = [][]int{{1, 1}, {1, 0}}
 }
 
 // ## To run enter:
