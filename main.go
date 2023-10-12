@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 // Print Color
@@ -13,6 +14,7 @@ const GREEN = "\x1B[32m"
 const YELLOW = "\x1B[33m"
 const BRED = "\x1B[41m"
 const BGREEN = "\x1B[42m"
+const MOVE_CURSOR = "\x1B[H"
 
 // position describes a positions state alive (true) or dead (false).
 // day and night are used to clarify passing of time, day after night after day
@@ -127,6 +129,8 @@ func printPosition(alive bool) {
 }
 
 func printBoard(board [][]position, day bool, generation uint) {
+	fmt.Printf("%v%v%vGame of Life%v\n\n", MOVE_CURSOR, BOLD, UNDERLINE, RESET)
+
 	for row := 0; row < len(board); row++ {
 		// fmt.Printf("%-3v ", row) // row index
 		for col := 0; col < len(board[0]); col++ {
@@ -139,11 +143,12 @@ func printBoard(board [][]position, day bool, generation uint) {
 		fmt.Printf("\n")
 	}
 	fmt.Printf("\ngeneration: %v\n\n", generation)
+	time.Sleep(250 * time.Millisecond) // add -s flag!!!!!!!!!
 }
 
 func main() {
 	fmt.Printf("\033[H\033[2J") // Clear screen
-	fmt.Printf("%v%vGame of Life%v\n\n", BOLD, UNDERLINE, RESET)
+	// fmt.Printf("%v%vGame of Life%v\n\n", BOLD, UNDERLINE, RESET)
 
 	initialBoard := [][]int{{0, 1, 0}, {0, 0, 1}, {1, 1, 1}, {0, 0, 0}}
 	// initialBoard := [][]int{{1, 1}, {1, 0}}
