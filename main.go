@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"math/rand"
+	"os"
 	"time"
 )
 
@@ -23,21 +26,19 @@ type position struct {
 	night bool
 }
 
-func makeNewBoard(initialBoard [][]int) [][]position {
+func makeNewBoard(initialBoard [][]bool) [][]position {
 	newBoard := make([][]position, len(initialBoard))
 	for row := range newBoard {
-		newBoard[row] = make([]position, len(initialBoard[0]))
-		for col := 0; col < len(initialBoard[0]); col++ {
-			if initialBoard[row][col] == 1 {
-				newBoard[row][col].day = true
-			}
+		newBoard[row] = make([]position, len(initialBoard[row]))
+		for col := 0; col < len(initialBoard[row]); col++ {
+			newBoard[row][col].day = initialBoard[row][col]
 		}
 	}
 	return newBoard
 }
 
 func offBoard(board [][]position, row, col int) bool {
-	if row < 0 || col < 0 || row >= len(board) || col >= len(board[0]) {
+	if row < 0 || col < 0 || row >= len(board) || col >= len(board[row]) {
 		return true
 	}
 	return false
@@ -102,16 +103,15 @@ func applyRules(board [][]position, row, col int, day bool) {
 	deadOrAlive(board, row, col, day, neighbours)
 }
 
-func gameOfLife(initialBoard [][]int) {
+func gameOfLife(board [][]position) {
 	day := true
-	board := makeNewBoard(initialBoard)
 	var generation uint
 
-	for ; generation < 10; generation++ {
+	for ; generation < 100; generation++ {
 		printBoard(board, day, generation) ////
 
 		for row := 0; row < len(board); row++ {
-			for col := 0; col < len(board[0]); col++ {
+			for col := 0; col < len(board[row]); col++ {
 				applyRules(board, row, col, day)
 			}
 		}
@@ -133,7 +133,7 @@ func printBoard(board [][]position, day bool, generation uint) {
 
 	for row := 0; row < len(board); row++ {
 		// fmt.Printf("%-3v ", row) // row index
-		for col := 0; col < len(board[0]); col++ {
+		for col := 0; col < len(board[row]); col++ {
 			if day {
 				printPosition(board[row][col].day)
 			} else {
@@ -143,17 +143,84 @@ func printBoard(board [][]position, day bool, generation uint) {
 		fmt.Printf("\n")
 	}
 	fmt.Printf("\ngeneration: %v\n\n", generation)
-	time.Sleep(250 * time.Millisecond) // add -s flag!!!!!!!!!
+	time.Sleep(150 * time.Millisecond) // add -s flag!!!!!!!!!
+}
+
+func usageError(message string, err error) {
+	fmt.Printf("%vERROR %v %v%v\n", RED, message, err, RESET)
+	// printUsage()//!!
+	os.Exit(1)
+}
+
+func errorExit(message string) {
+	fmt.Printf("%vERROR %v %v\n", RED, message, RESET)
+	// printUsage()//!!
+	os.Exit(1)
+}
+
+func loadBoard(filename string) [][]position {
+	filepath := "boards/" + filename + ".txt"
+
+	readFile, err := os.Open(filepath)
+	if err != nil {
+		usageError("Invalid filepath: "+filepath, err)
+	}
+
+	var board [][]position
+	var row int
+
+	fileScanner := bufio.NewScanner(readFile)
+	fileScanner.Split(bufio.ScanLines)
+
+	for fileScanner.Scan() {
+		board = append(board, []position{})
+		line := fileScanner.Text()
+		for col := 0; col < len(line); col++ {
+			if line[col] == '0' {
+				board[row] = append(board[row], position{false, false})
+			} else if line[col] == '1' {
+				board[row] = append(board[row], position{true, false})
+			} else {
+				errorExit("Invalid value in file: " + string(line[col]))
+			}
+		}
+		row++
+	}
+
+	readFile.Close()
+	return board
+}
+
+func randomBoard(size, percentAlive int) [][]position {
+	var board [][]position
+	// var row uint
+	// var col uint
+
+	rand.Seed(time.Now().UnixNano()) // -s flag!!!!!!
+
+	for row := 0; row < size; row++ {
+		board = append(board, []position{})
+		for col := 0; col < size; col++ {
+			random := rand.Intn(100)
+			if random < percentAlive {
+				board[row] = append(board[row], position{true, false})
+			} else {
+				board[row] = append(board[row], position{false, false})
+			}
+		}
+	}
+	return board
 }
 
 func main() {
 	fmt.Printf("\033[H\033[2J") // Clear screen
-	// fmt.Printf("%v%vGame of Life%v\n\n", BOLD, UNDERLINE, RESET)
 
-	initialBoard := [][]int{{0, 1, 0}, {0, 0, 1}, {1, 1, 1}, {0, 0, 0}}
-	// initialBoard := [][]int{{1, 1}, {1, 0}}
-	gameOfLife(initialBoard)
+	// filenme := "leetcode1"
+	// filenme := "beacon"
+	// board := loadBoard(filenme)
+	board := randomBoard(42, 42) // flags!!!!!!!
 
+	gameOfLife(board)
 }
 
 // ## To run enter:
