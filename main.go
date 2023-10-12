@@ -103,21 +103,19 @@ func applyRules(board [][]position, row, col int, day bool) {
 func gameOfLife(initialBoard [][]int) {
 	day := true
 	board := makeNewBoard(initialBoard)
+	var generation uint
 
-	printBoard(board, day) ////
+	for ; generation < 10; generation++ {
+		printBoard(board, day, generation) ////
 
-	for row := 0; row < len(board); row++ {
-		for col := 0; col < len(board[0]); col++ {
-			applyRules(board, row, col, day)
+		for row := 0; row < len(board); row++ {
+			for col := 0; col < len(board[0]); col++ {
+				applyRules(board, row, col, day)
+			}
 		}
-	}
 
-	if day {
-		day = false
-	} else {
-		day = true
+		day = !day
 	}
-	printBoard(board, day) ////
 }
 
 func printPosition(alive bool) {
@@ -128,9 +126,9 @@ func printPosition(alive bool) {
 	}
 }
 
-func printBoard(board [][]position, day bool) {
+func printBoard(board [][]position, day bool, generation uint) {
 	for row := 0; row < len(board); row++ {
-		// fmt.Printf("%-3v ", row)//
+		// fmt.Printf("%-3v ", row) // row index
 		for col := 0; col < len(board[0]); col++ {
 			if day {
 				printPosition(board[row][col].day)
@@ -140,7 +138,7 @@ func printBoard(board [][]position, day bool) {
 		}
 		fmt.Printf("\n")
 	}
-	fmt.Printf("\n")
+	fmt.Printf("\ngeneration: %v\n\n", generation)
 }
 
 func main() {
